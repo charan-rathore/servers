@@ -86,6 +86,18 @@ class TestExtractContentFromHtml:
         result = extract_content_from_html(html)
         assert "Example" in result
 
+    @pytest.mark.usefixtures("python_readability")
+    def test_empty_simplified_tree_returns_error_not_crash(self):
+        """GH#5158: with beautifulsoup4 >= 4.13, readabilipy's pure-Python path
+        raises IndexError on a page that simplifies to an empty tree. Report
+        the usual simplification failure instead of crashing the tool call."""
+        html = (
+            '<html><body><div id="root"></div>'
+            '<script type="module" src="/app.js"></script></body></html>'
+        )
+        result = extract_content_from_html(html)
+        assert result == "<error>Page failed to be simplified from HTML</error>"
+
     @pytest.mark.usefixtures("node_readability")
     def test_empty_content_returns_error(self):
         """Test that empty/invalid HTML returns error message."""
