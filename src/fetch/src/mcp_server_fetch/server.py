@@ -161,10 +161,18 @@ def extract_content_from_html(html: str) -> str:
     Returns:
         Simplified markdown version of the content
     """
-    ret = readabilipy.simple_json.simple_json_from_html_string(
-        html, use_readability=True
-    )
     failed = "<error>Page failed to be simplified from HTML</error>"
+    try:
+        ret = readabilipy.simple_json.simple_json_from_html_string(
+            html, use_readability=True
+        )
+    except IndexError:
+        # With beautifulsoup4 >= 4.13, readabilipy's pure-Python path raises
+        # IndexError on a page that simplifies to an empty tree (bs4's
+        # Tag.append now indexes the elements Tag.insert returns, and
+        # appending an empty tree inserts none). Report the same
+        # simplification failure the empty-content paths below report.
+        return failed
     if not ret["content"]:
         return failed
     content = markdownify.markdownify(
